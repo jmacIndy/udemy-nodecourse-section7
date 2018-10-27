@@ -27,9 +27,7 @@ app.get('/todos', (req, res) => {
    Todo.find().then((todos) => {
       res.send({todos});
    }, (e) => {
-      res.status(400).send({
-         message: process.env.MONGODB_URI
-      });
+      res.status(400).send();
    });
 });
 
