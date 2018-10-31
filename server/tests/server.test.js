@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb');
@@ -10,7 +11,9 @@ const todos = [{
    text: 'new todo 1'
 }, {
    _id: new ObjectID(),
-   text: 'new todo 2'
+   text: 'new todo 2',
+   completed: true,
+   completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -141,4 +144,44 @@ describe('DELETE /todos/:id', () => {
          .expect(404)
          .end(done);
    });
+});
+
+describe('PATCH /todos/:id', () => {
+   it('should update the todo', (done) => {
+      var id = todos[0]._id.toHexString();
+      var text = 'I have now updated the text';
+
+      request(app)
+         .patch(`/todos/${id}`)
+         .send({
+            text,
+            completed: true
+         })
+         .expect(200)
+         .expect((res) => {
+            expect(res.body.todo.text).toBe(text);
+            expect(res.body.todo.completed).toBe(true);
+            expect(typeof res.body.todo.completedAt).toBe('number');
+         })
+         .end(done);
+   });
+
+   it('should clear completedAt when todo is not completed', (done) => {
+      var id = todos[1]._id.toHexString();
+      var text = 'change the text here';
+
+      request(app)
+         .patch(`/todos/${id}`)
+         .send({
+            text,
+            completed: false
+         })
+         .expect(200)
+         .expect((res) => {
+            expect(res.body.todo.text).toBe(text);
+            expect(res.body.todo.completed).toBe(false);
+            expect(res.body.todo.completedAt).toBeNull();
+         })
+         .end(done);
+      });
 });
